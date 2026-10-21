@@ -1,0 +1,102 @@
+buildscript {
+    repositories {
+        maven { url "https://repo.grails.org/grails/core" }
+        mavenCentral()
+    }
+    dependencies { // Not Published to Gradle Plugin Portal
+        classpath "org.grails:grails-gradle-plugin:6.2.4"
+        classpath "org.grails.plugins:hibernate5:8.1.0"
+    }
+}
+
+plugins {
+    id "groovy"
+    id "war"
+    id "idea"
+    id "com.bertramlabs.asset-pipeline" version "4.5.1"
+    id "application"
+    id "eclipse"
+}
+
+// Not Published to Gradle Plugin Portal
+apply plugin: "org.grails.grails-web"
+apply plugin: "org.grails.grails-gsp"
+
+group = "example"
+
+repositories {
+    if (project.hasProperty('usePublishedAdmin')) mavenLocal()
+    mavenCentral()
+    maven { url "https://repo.grails.org/grails/core/" }
+}
+
+configurations {
+    all {
+        resolutionStrategy.eachDependency { DependencyResolveDetails details->
+            if (details.requested.group == 'org.seleniumhq.selenium') {
+                details.useVersion('4.19.1')
+            }
+        }
+    }
+}
+
+dependencies {
+    profile "org.grails.profiles:web"
+    implementation "org.grails:grails-core"
+    implementation "org.grails:grails-logging"
+    implementation "org.grails:grails-plugin-databinding"
+    implementation "org.grails:grails-plugin-i18n"
+    implementation "org.grails:grails-plugin-interceptors"
+    implementation "org.grails:grails-plugin-rest"
+    implementation "org.grails:grails-plugin-services"
+    implementation "org.grails:grails-plugin-url-mappings"
+    implementation "org.grails:grails-web-boot"
+    implementation "org.grails.plugins:gsp"
+    implementation "org.grails.plugins:hibernate5"
+    if (project.hasProperty('usePublishedAdmin')) {
+        implementation 'org.grails.plugins:grails-admin:0.1.0-SNAPSHOT'
+    } else {
+        implementation project(':')
+    }
+    if (!project.hasProperty('withoutHostSecurity')) {
+        implementation 'org.grails.plugins:spring-security-core:6.0.3'
+        implementation 'org.grails.plugins:async:5.0.2'
+    }
+    implementation "org.springframework.boot:spring-boot-autoconfigure"
+    implementation "org.springframework.boot:spring-boot-starter"
+    implementation "org.springframework.boot:spring-boot-starter-actuator"
+    implementation "org.springframework.boot:spring-boot-starter-logging"
+    implementation "org.springframework.boot:spring-boot-starter-tomcat"
+    implementation "org.springframework.boot:spring-boot-starter-validation"
+    compileOnly "io.micronaut:micronaut-inject-groovy"
+    console "org.grails:grails-console"
+    runtimeOnly "com.bertramlabs.plugins:asset-pipeline-grails:4.5.1"
+    runtimeOnly "com.h2database:h2"
+    runtimeOnly "org.postgresql:postgresql"
+    runtimeOnly "org.apache.tomcat:tomcat-jdbc"
+    runtimeOnly "org.fusesource.jansi:jansi:1.18"
+    testImplementation "io.micronaut:micronaut-inject-groovy"
+    testImplementation "org.grails:grails-gorm-testing-support"
+    testImplementation "org.grails:grails-web-testing-support"
+    testImplementation "org.spockframework:spock-core"
+}
+
+application {
+    mainClass = "example.Application"
+}
+
+java {
+    sourceCompatibility = JavaVersion.toVersion("17")
+}
+
+tasks.withType(Test) {
+    useJUnitPlatform()
+}
+tasks.named('bootRun') {
+    jvmArgs '-Xms128m', '-Xmx512m'
+}
+assets {
+    minifyJs = true
+    minifyCss = true
+    skipNonDigests = true
+}

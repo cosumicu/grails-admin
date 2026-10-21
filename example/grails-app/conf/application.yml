@@ -1,0 +1,156 @@
+info:
+  app:
+    name: "@info.app.name@"
+    version: "@info.app.version@"
+    grailsVersion: "@info.app.grailsVersion@"
+grails:
+  codegen:
+    defaultPackage: example
+  profile: web
+  plugin:
+    springsecurity:
+      userLookup:
+        userDomainClassName: example.User
+        authorityJoinClassName: example.UserRole
+      authority:
+        className: example.Role
+      controllerAnnotations:
+        staticRules:
+          - pattern: /admin/**
+            access: [permitAll]
+          - pattern: /admin
+            access: [permitAll]
+          - pattern: /**
+            access: [permitAll]
+  views:
+    default:
+      codec: html
+    gsp:
+      encoding: UTF-8
+      htmlcodec: xml
+      codecs:
+        expression: html
+        scriptlet: html
+        taglib: none
+        staticparts: none
+dataSource:
+  driverClassName: org.h2.Driver
+  username: sa
+  password: ""
+  pooled: true
+  jmxExport: true
+dataSources:
+  lookup:
+    driverClassName: org.h2.Driver
+    username: sa
+    password: ""
+    dbCreate: create-drop
+    url: jdbc:h2:mem:lookupDb;LOCK_TIMEOUT=10000;DB_CLOSE_ON_EXIT=FALSE
+environments:
+  development:
+    dataSource:
+      dbCreate: update
+      url: jdbc:h2:file:./grails-admin-example-dev;LOCK_TIMEOUT=10000;DB_CLOSE_ON_EXIT=FALSE
+  test:
+    dataSource:
+      driverClassName: ${GRAILS_ADMIN_TEST_DB_DRIVER:org.h2.Driver}
+      username: ${GRAILS_ADMIN_TEST_DB_USER:sa}
+      password: ${GRAILS_ADMIN_TEST_DB_PASSWORD:}
+      dbCreate: update
+      url: ${GRAILS_ADMIN_TEST_DB_URL:jdbc:h2:mem:testDb;LOCK_TIMEOUT=10000;DB_CLOSE_ON_EXIT=FALSE}
+  production:
+    server:
+      servlet:
+        session:
+          cookie:
+            secure: true
+            http-only: true
+    dataSource:
+      dbCreate: none
+      url: jdbc:h2:./prodDb;LOCK_TIMEOUT=10000;DB_CLOSE_ON_EXIT=FALSE
+      properties:
+        jmxEnabled: true
+        initialSize: 5
+        maxActive: 50
+        minIdle: 5
+        maxIdle: 25
+        maxWait: 10000
+        maxAge: 600000
+        timeBetweenEvictionRunsMillis: 5000
+        minEvictableIdleTimeMillis: 60000
+        validationQuery: SELECT 1
+        validationQueryTimeout: 3
+        validationInterval: 15000
+        testOnBorrow: true
+        testWhileIdle: true
+        testOnReturn: false
+        jdbcInterceptors: ConnectionState
+        defaultTransactionIsolation: 2
+hibernate:
+  cache:
+    queries: false
+    use_second_level_cache: false
+    use_query_cache: false
+grailsAdmin:
+  enabled: true
+  auditSinkBean: demoAdminAuditSinkService
+  maxPageSize: 100
+  models:
+    customer:
+      domain: example.Customer
+      group: Banking
+      displayOrder: 10
+      listDisplay: [firstName, lastName, email, active]
+      searchFields: [firstName, lastName, email]
+      listFilter: [active]
+      formGroups:
+        Identity: [firstName, lastName, email]
+        Status: [active]
+      widgetTemplates:
+        email: /admin/widgets/emailHint
+      pageTemplates:
+        show: /admin/custom/customerShow
+      bulkActions:
+        activate: customerActivateActionService
+    account:
+      domain: example.Account
+      group: Banking
+      displayOrder: 20
+      listDisplay: [accountNumber, accountType, customer, balance]
+      searchFields: [accountNumber]
+      readonlyFields: [balance]
+      writeHandlerBean: accountWriteHandlerService
+    transaction:
+      domain: example.Transaction
+      group: Banking
+      listDisplay: [referenceNumber, amount, transactionDate]
+      readonlyFields: ["*"]
+      allowCreate: false
+      allowChange: false
+    user:
+      domain: example.User
+      group: Authentication
+      listDisplay: [username, enabled]
+      readonlyFields: ["*"]
+      allowCreate: false
+      allowChange: false
+    role:
+      domain: example.Role
+      group: Authentication
+      listDisplay: [authority]
+      readonlyFields: ["*"]
+      allowCreate: false
+      allowChange: false
+    audit-log:
+      domain: example.AuditLog
+      group: System
+      listDisplay: [actor, action]
+      scopeBean: auditLogScopeService
+      readonlyFields: ["*"]
+      allowCreate: false
+      allowChange: false
+    lookup-code:
+      domain: example.LookupCode
+      group: System
+      listDisplay: [code, description]
+      searchFields: [code]
