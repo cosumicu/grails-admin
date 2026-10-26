@@ -5,6 +5,7 @@ import java.time.LocalDate
 import java.time.ZoneId
 
 class AdminSafetySpec extends Specification {
+
     void 'route slugs contain only stable path characters'() {
         expect:
         AdminRegistryService.slug('Banking & Payments') == 'banking-payments'
@@ -47,4 +48,5 @@ class AdminSafetySpec extends Specification {
         AdminFormValues.format(saved, 'date') == '2026-10-19'
         AdminFormValues.format(null, 'date') == null
     }
+
 }

@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 class AdminErrorFilter extends OncePerRequestFilter {
+
     private static final String PREFIX = '\u001B[1;31m[GRAILS-ADMIN ERROR]\u001B[0m'
     static final String ERROR_ID_ATTRIBUTE = 'grailsAdminErrorId'
 
@@ -17,7 +18,7 @@ class AdminErrorFilter extends OncePerRequestFilter {
         try {
             chain.doFilter(request, response)
         } catch (Exception error) {
-            String errorId = UUID.randomUUID().toString()
+            String errorId = UUID.randomUUID()
             String path = (request.requestURI?.substring(request.contextPath?.length() ?: 0) ?: '/admin')
                 .replaceAll(/[\r\n\u001B]/, ' ')
             System.err.println("${PREFIX} ${errorId} ${request.method} ${path}: unexpected failure")
@@ -38,5 +39,6 @@ class AdminErrorFilter extends OncePerRequestFilter {
                     '<p>Error ID: ' + errorId + '</p><a href="/admin">Admin home</a></body></html>')
             }
         }
-    }
+            }
+
 }

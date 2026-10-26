@@ -7,6 +7,7 @@ import org.grails.datastore.mapping.model.types.ToMany
 
 @Transactional(readOnly = true)
 class AdminMetadataService {
+
     GrailsApplication grailsApplication
     private final Map<Class, Map> cache = new java.util.concurrent.ConcurrentHashMap<>()
     private static final Set<String> EXCLUDED = ['id', 'version', 'dateCreated', 'lastUpdated', 'password', 'passwordHash',
@@ -21,11 +22,13 @@ class AdminMetadataService {
             if (!entity) throw new IllegalArgumentException('Domain has no GORM mapping')
             entity.persistentProperties.each { property ->
                 String name = property.name
-                if (EXCLUDED.contains(name) || name ==~ /(?i).*(password|secret|token|credential|privateKey).*/ ||
+                if (EXCLUDED.contains(name) || name ==~ /(?i).*(password|secret|token|credential|privateKey).*/ || {
                     name.startsWith('$') || name == 'class') return
+                }
                 Class fieldType = property.type
-                if (!fieldType || Collection.isAssignableFrom(fieldType) || Map.isAssignableFrom(fieldType) ||
+                if (!fieldType || Collection.isAssignableFrom(fieldType) || Map.isAssignableFrom(fieldType) || {
                     fieldType.isArray()) return
+                }
                 boolean association = grailsApplication.getArtefact('Domain', fieldType.name) != null
                 boolean supported = association || fieldType.isEnum() || fieldType in [String, Integer, int, Long, long,
                     Short, short, BigDecimal, Double, double, Float, float, Boolean, boolean, Date, LocalDate, LocalDateTime]
@@ -52,4 +55,5 @@ class AdminMetadataService {
              relationships: relationships.asImmutable()].asImmutable()
         }
     }
+
 }

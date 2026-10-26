@@ -7,6 +7,7 @@ import org.springframework.validation.FieldError
 import spock.lang.Specification
 
 class AdminFormErrorsSpec extends Specification implements DomainUnitTest<AdminAccount> {
+
     void 'an overlong value identifies its field and limit without logging the value'() {
         given:
         String submitted = 'x' * 101
@@ -51,4 +52,5 @@ class AdminFormErrorsSpec extends Specification implements DomainUnitTest<AdminA
         AdminFormErrors.collect(record, messages, Locale.ENGLISH).fields.amount == 'Amount is invalid.'
         !AdminFormErrors.logSummary(record).contains('private-value')
     }
+
 }

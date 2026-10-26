@@ -2,6 +2,7 @@ package grailsadmin
 
 /** Small per-address throttle for the single admin account. */
 class AdminLoginThrottleService {
+
     private static final int MAX_FAILURES = 5
     private static final long WINDOW_MILLIS = 15 * 60 * 1000L
     private static final int MAX_ADDRESSES = 10000
@@ -36,4 +37,5 @@ class AdminLoginThrottleService {
         while (!times.isEmpty() && times.peekFirst() < cutoff) times.removeFirst()
         if (times.isEmpty()) failures.remove(key)
     }
+
 }

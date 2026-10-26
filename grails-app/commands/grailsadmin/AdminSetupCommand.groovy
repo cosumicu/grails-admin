@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets
 
 /** Invoked by the terminal launcher through the host application's runCommand task. */
 class AdminSetupCommand implements ApplicationCommand {
+
     AdminAccountService adminAccountService
 
     boolean handle(ExecutionContext context) {
@@ -32,7 +33,7 @@ class AdminSetupCommand implements ApplicationCommand {
                     if (confirmation) Arrays.fill(confirmation, '\u0000' as char)
                     return false
                 }
-            }
+                }
         } else if (System.getenv('GRAILS_ADMIN_SETUP_USERNAME') && System.getenv('GRAILS_ADMIN_SETUP_PASSWORD') &&
             System.getenv('GRAILS_ADMIN_SETUP_CONFIRMATION')) {
             username = System.getenv('GRAILS_ADMIN_SETUP_USERNAME')
@@ -42,7 +43,7 @@ class AdminSetupCommand implements ApplicationCommand {
         } else {
             System.err.println('Admin setup needs a terminal or the bundled secure setup launcher.')
             return false
-        }
+            }
         try {
             adminAccountService.createInitialAccount(username, password, confirmation, acceptedWarning)
             System.out.println('Grails Admin account created.')
@@ -55,4 +56,5 @@ class AdminSetupCommand implements ApplicationCommand {
             if (confirmation) Arrays.fill(confirmation, '\u0000' as char)
         }
     }
+
 }

@@ -2,6 +2,7 @@ package grailsadmin
 
 /** The only credential used by Grails Admin. This domain is never registered for CRUD. */
 class AdminAccount {
+
     String slot = 'primary'
     String username
     String passwordHash
@@ -19,4 +20,5 @@ class AdminAccount {
         passwordHash column: 'password_hash'
         sessionVersion column: 'session_version'
     }
+
 }

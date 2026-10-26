@@ -5,6 +5,7 @@ import java.time.*
 import org.hibernate.FetchMode
 
 class AdminCrudService {
+
     GrailsApplication grailsApplication
     AdminMetadataService adminMetadataService
     AdminSecurityService adminSecurityService
@@ -33,9 +34,10 @@ class AdminCrudService {
         if (query && !searchFields) throw new IllegalArgumentException('No searchable fields are available')
         Map filters = [:]
         model.listFilter.each { field ->
-            String raw = params["filter_${field}"]?.toString()
-            if (raw != null && !adminSecurityService.readable(model, field))
+            String raw = params["filter_${field}"]?
+            if (raw != null && !adminSecurityService.readable(model, field)) {
                 throw new IllegalArgumentException("Filter is not available: $field")
+            }
             if (raw != null && raw.length() > 100) throw new IllegalArgumentException("Filter is too long: $field")
             if (raw?.trim()) filters[field] = convert(meta.byName[field], raw.trim())
         }
@@ -93,7 +95,7 @@ class AdminCrudService {
                     !get(target, changes[field].id?.toString(), 'view')) {
                     throw new AdminFieldConversionException(field, definition.type,
                         new IllegalArgumentException('Association is not available'))
-                }
+                    }
             }
         }
         if (model.writeHandlerBean) {
@@ -184,8 +186,9 @@ class AdminCrudService {
                 throw new AdminFieldConversionException(field.name?.toString(), type,
                     new IllegalArgumentException('Invalid association'))
             def target = type.get(raw.toLong())
-            if (!target)
+            if (!target) {
                 throw new AdminFieldConversionException(field.name?.toString(), type,
+            }
                     new IllegalArgumentException('Unknown association'))
             return target
         }
@@ -223,4 +226,5 @@ class AdminCrudService {
         if (criteria == null) return
         criteria.call(builder)
     }
+
 }

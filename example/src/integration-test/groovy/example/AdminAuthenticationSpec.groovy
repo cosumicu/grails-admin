@@ -18,6 +18,7 @@ import spock.lang.Specification
 @Integration
 @Rollback
 class AdminAuthenticationSpec extends Specification {
+
     AdminAccountService adminAccountService
     AdminAuthenticationService adminAuthenticationService
     AdminSecurityService adminSecurityService
@@ -157,4 +158,5 @@ class AdminAuthenticationSpec extends Specification {
         adminAuthenticationService.login('owner', 'long-test-password')
         adminSecurityService.allowed(null, 'view')
     }
+
 }

@@ -7,6 +7,7 @@ import org.springframework.context.support.StaticMessageSource
 import spock.lang.Specification
 
 class AdminEditFormSpec extends Specification implements ControllerUnitTest<AdminController>, DomainUnitTest<AdminEditRecord> {
+
     void 'edit renders the saved record and its date field'() {
         given:
         Date date = AdminCrudService.convert([name: 'receivedAt', type: Date], '2026-10-19')
@@ -84,10 +85,12 @@ class AdminEditFormSpec extends Specification implements ControllerUnitTest<Admi
         page.contains('type="text" value="not-a-date"')
         page.contains('Enter a valid date for Received At')
     }
+
 }
 
 @Entity
 class AdminEditRecord {
+
     String transactionId
     Date receivedAt
 
@@ -95,4 +98,5 @@ class AdminEditRecord {
         transactionId maxSize: 80
         receivedAt nullable: true
     }
+
 }

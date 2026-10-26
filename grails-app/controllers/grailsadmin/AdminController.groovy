@@ -5,6 +5,7 @@ import org.springframework.context.MessageSource
 import org.springframework.context.i18n.LocaleContextHolder
 
 class AdminController {
+
     private static final String TERMINAL_ERROR_PREFIX = '\u001B[1;31m[GRAILS-ADMIN ERROR]\u001B[0m'
 
     static allowedMethods = [save: 'POST', update: 'POST', remove: 'POST', bulk: 'POST',
@@ -49,7 +50,7 @@ class AdminController {
     }
 
     def error() {
-        String errorId = request.getAttribute(AdminErrorFilter.ERROR_ID_ATTRIBUTE)?.toString()
+        String errorId = request.getAttribute(AdminErrorFilter.ERROR_ID_ATTRIBUTE)?
         if (!errorId) { adminStatus(404, 'Page not found', 'This admin page does not exist.'); return }
         render view: 'error', status: 500,
             model: [title: 'Internal server error', message: 'An unexpected error occurred. Please try again later.', errorId: errorId]
@@ -76,8 +77,9 @@ class AdminController {
     private void denyUnauthenticated() {
         if (request.method == 'GET') {
             String uri = request.requestURI?.substring(request.contextPath?.length() ?: 0)
-            if (uri == '/admin' || uri?.startsWith('/admin/'))
+            if (uri == '/admin' || uri?.startsWith('/admin/')) {
                 request.getSession(true).setAttribute('grailsAdminReturnTo', uri)
+            }
             redirect uri: '/admin/login'
         }
         else adminStatus(403, 'Session expired', 'Sign in again, then retry from a fresh form.', '/admin/login', 'Sign in')
@@ -97,7 +99,7 @@ class AdminController {
             if (!adminLoginThrottleService.permitted(request.remoteAddr)) { render status: 429; return }
             if (adminAuthenticationService.login(params.username?.toString(), params.password?.toString())) {
                 adminLoginThrottleService.succeeded(request.remoteAddr)
-                String destination = request.getSession(false)?.getAttribute('grailsAdminReturnTo')?.toString()
+                String destination = request.getSession(false)?.getAttribute('grailsAdminReturnTo')?
                 request.getSession(false)?.removeAttribute('grailsAdminReturnTo')
                 redirect uri: (destination == '/admin' || destination?.startsWith('/admin/')) ? destination : '/admin'
             } else {
@@ -181,7 +183,7 @@ class AdminController {
         render view: pageView(m, 'form'), model: common(m) + [record: record, metadata: meta, options: options,
             creating: creating, saveError: saveError, submittedValues: submittedValues,
             fieldErrors: validation.fields + extraFieldErrors, generalErrors: validation.general]
-    }
+                      }
 
     private static void reportAdminError(String operation, AdminModel model, String detail, Throwable cause = null) {
         String safeDetail = (detail ?: 'Unknown error').replaceAll(/[\r\n\u001B]/, ' ')
@@ -281,4 +283,5 @@ class AdminController {
             } catch (SecurityException ignored) { adminStatus(403, 'Access denied', 'You do not have permission to delete this record.') }
         }.invalidToken { adminStatus(403, 'Form expired', 'Reload the admin page and try again.') }
     }
+
 }

@@ -4,6 +4,7 @@ import grails.testing.web.taglib.TagLibUnitTest
 import spock.lang.Specification
 
 class AdminHostCsrfTagLibSpec extends Specification implements TagLibUnitTest<AdminHostCsrfTagLib> {
+
     void 'configured session token is included in plugin forms'() {
         given:
         grailsApplication.config.grailsAdmin.hostCsrf.parameterName = 'csrfToken'
@@ -26,4 +27,5 @@ class AdminHostCsrfTagLibSpec extends Specification implements TagLibUnitTest<Ad
         expect:
         applyTemplate('<adminHost:csrfFields/>') == ''
     }
+
 }

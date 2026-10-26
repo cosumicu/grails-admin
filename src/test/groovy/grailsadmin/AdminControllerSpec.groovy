@@ -4,6 +4,7 @@ import grails.testing.web.controllers.ControllerUnitTest
 import spock.lang.Specification
 
 class AdminControllerSpec extends Specification implements ControllerUnitTest<AdminController> {
+
     void 'disabled plugin hides the dashboard'() {
         given:
         controller.adminRegistryService = Stub(AdminRegistryService) { isEnabled() >> false }
@@ -140,4 +141,5 @@ class AdminControllerSpec extends Specification implements ControllerUnitTest<Ad
         page.contains('Grails Administration')
         page.contains('test-error-id')
     }
+
 }

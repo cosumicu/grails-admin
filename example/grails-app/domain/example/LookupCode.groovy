@@ -2,6 +2,7 @@ package example
 
 /** Synthetic record stored on a second host-managed GORM datasource. */
 class LookupCode {
+
     String code
     String description
 
@@ -12,4 +13,5 @@ class LookupCode {
     }
 
     String toString() { code }
+
 }

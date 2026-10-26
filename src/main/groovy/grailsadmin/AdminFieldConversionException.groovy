@@ -1,6 +1,7 @@
 package grailsadmin
 
 class AdminFieldConversionException extends IllegalArgumentException {
+
     final String fieldName
     final Class fieldType
 
@@ -9,4 +10,5 @@ class AdminFieldConversionException extends IllegalArgumentException {
         this.fieldName = fieldName
         this.fieldType = fieldType
     }
+
 }

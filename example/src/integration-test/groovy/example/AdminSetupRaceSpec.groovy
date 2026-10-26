@@ -11,6 +11,7 @@ import java.util.concurrent.TimeUnit
 
 @Integration
 class AdminSetupRaceSpec extends Specification {
+
     AdminAccountService adminAccountService
 
     def setup() {
@@ -51,4 +52,5 @@ class AdminSetupRaceSpec extends Specification {
         cleanup:
         workers.shutdownNow()
     }
+
 }

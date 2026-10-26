@@ -1,6 +1,7 @@
 package grailsadmin
 
 class UrlMappings {
+
     static mappings = {
         '/admin'(controller: 'admin', action: 'index')
         '/admin/login'(controller: 'admin', action: 'login')
@@ -17,4 +18,5 @@ class UrlMappings {
         "/admin/$group/$model/$id"(controller: 'admin', action: 'show')
         "/admin/$group/$model"(controller: 'admin', action: 'list')
     }
+
 }

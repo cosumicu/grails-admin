@@ -5,6 +5,7 @@ import org.springframework.boot.web.servlet.FilterRegistrationBean
 import org.springframework.core.Ordered
 
 class GrailsAdminGrailsPlugin extends Plugin {
+
     def grailsVersion = '6.2.3 > *'
     def title = 'Grails Admin'
     def description = 'Registered-domain administration for Grails applications'
@@ -25,4 +26,5 @@ class GrailsAdminGrailsPlugin extends Plugin {
     void doWithApplicationContext() {
         applicationContext.getBean('adminRegistryService').initialize()
     }
+
 }

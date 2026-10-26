@@ -3,6 +3,7 @@ package grailsadmin
 import grails.core.GrailsApplication
 
 class AdminSecurityService {
+
     GrailsApplication grailsApplication
     AdminRegistryService adminRegistryService
     AdminMetadataService adminMetadataService
@@ -23,8 +24,9 @@ class AdminSecurityService {
 
     boolean allowed(AdminModel model, String operation) {
         if (!authenticated()) return false
-        if (model && ((operation == 'add' && !model.allowCreate) ||
+        if (model && ((operation == 'add' && !model.allowCreate) || {
             (operation == 'change' && !model.allowChange) || (operation == 'delete' && !model.allowDelete))) return false
+        }
         def custom = policy()
         if (custom) return custom.authenticated() == true && custom.allowed(model, operation) == true
         true
@@ -53,4 +55,5 @@ class AdminSecurityService {
         def custom = policy()
         custom ? custom.writable(model, field) == true : true
     }
+
 }

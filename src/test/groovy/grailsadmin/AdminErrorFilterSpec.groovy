@@ -8,6 +8,7 @@ import javax.servlet.FilterChain
 import javax.servlet.ServletException
 
 class AdminErrorFilterSpec extends Specification {
+
     void '#kind failure gets one admin error ID and forwards to the admin error page'() {
         given:
         def request = new MockHttpServletRequest('GET', '/admin/monitoring/transaction/2/edit')
@@ -37,4 +38,5 @@ class AdminErrorFilterSpec extends Specification {
         'controller' | new IllegalStateException('Controller failed')
         'rendering'  | new ServletException('Rendering failed')
     }
+
 }

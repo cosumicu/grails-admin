@@ -1,5 +1,7 @@
 package example
+
 class Account {
+
     static belongsTo = [customer: Customer]
     Customer customer
     String accountNumber
@@ -11,4 +13,5 @@ class Account {
         balance min: new BigDecimal('0')
     }
     String toString() { accountNumber }
+
 }

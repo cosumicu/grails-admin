@@ -8,6 +8,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 class AdminFormErrors {
+
     static Map collect(Object record, MessageSource messageSource, Locale locale, Map definitions = [:]) {
         Map<String, String> fields = [:]
         List<String> general = []
@@ -22,7 +23,7 @@ class AdminFormErrors {
                     message = error instanceof FieldError ?
                         "${definitions[error.field]?.label ?: error.field} is invalid." : 'The record is invalid.'
                 }
-            }
+                    }
             if (error instanceof FieldError) fields[error.field] = message
             else general << message
         }
@@ -44,4 +45,5 @@ class AdminFormErrors {
             error instanceof FieldError ? "${error.field} (${error.code})" : "${error.objectName} (${error.code})"
         }?.join('; ') ?: 'Validation failed'
     }
+
 }

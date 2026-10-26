@@ -3,6 +3,7 @@ package grailsadmin
 import org.springframework.web.context.request.RequestContextHolder
 
 class AdminAuthenticationService {
+
     static final String SESSION_KEY = 'grailsAdminAuthenticationVersion'
 
     AdminAccountService adminAccountService
@@ -33,4 +34,5 @@ class AdminAuthenticationService {
     void logout() {
         request()?.getSession(false)?.removeAttribute(SESSION_KEY)
     }
+
 }

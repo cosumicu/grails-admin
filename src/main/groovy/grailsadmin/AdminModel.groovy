@@ -4,6 +4,7 @@ import groovy.transform.Immutable
 
 @Immutable
 class AdminModel {
+
     String key
     String group
     String slug
@@ -25,4 +26,5 @@ class AdminModel {
     Map<String, List<String>> formGroups
     Map<String, String> widgetTemplates
     Map<String, String> pageTemplates
+
 }

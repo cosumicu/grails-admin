@@ -4,6 +4,7 @@ import grails.core.GrailsApplication
 
 /** Adds a host application's CSRF field without replacing Grails Admin's form token. */
 class AdminHostCsrfTagLib {
+
     static namespace = 'adminHost'
 
     GrailsApplication grailsApplication
@@ -21,4 +22,5 @@ class AdminHostCsrfTagLib {
             if (token != null) out << g.hiddenField(name: parameterName, value: token.toString())
         }
     }
+
 }

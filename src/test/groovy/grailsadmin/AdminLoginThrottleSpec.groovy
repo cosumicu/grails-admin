@@ -3,6 +3,7 @@ package grailsadmin
 import spock.lang.Specification
 
 class AdminLoginThrottleSpec extends Specification {
+
     void 'repeated failures are limited per address and success clears them'() {
         given:
         def throttle = new AdminLoginThrottleService()
@@ -20,4 +21,5 @@ class AdminLoginThrottleSpec extends Specification {
         then:
         throttle.permitted('127.0.0.1')
     }
+
 }

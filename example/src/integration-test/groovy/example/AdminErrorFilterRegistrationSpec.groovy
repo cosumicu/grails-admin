@@ -9,6 +9,7 @@ import spock.lang.Specification
 
 @Integration
 class AdminErrorFilterRegistrationSpec extends Specification {
+
     @Autowired ApplicationContext applicationContext
 
     void 'plugin registers the admin error boundary in a host application'() {
@@ -21,4 +22,5 @@ class AdminErrorFilterRegistrationSpec extends Specification {
         registration.urlPatterns.contains('/admin/*')
         applicationContext.getBean('grailsUrlMappingsHolder').match('/admin/error').actionName == 'error'
     }
+
 }

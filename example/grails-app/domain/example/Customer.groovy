@@ -1,5 +1,7 @@
 package example
+
 class Customer {
+
     static hasMany = [accounts: Account]
     String firstName
     String lastName
@@ -13,4 +15,5 @@ class Customer {
         passwordHash nullable: true
     }
     String toString() { "$firstName $lastName" }
+
 }

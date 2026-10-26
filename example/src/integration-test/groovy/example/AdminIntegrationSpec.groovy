@@ -14,6 +14,7 @@ import org.springframework.web.context.request.ServletRequestAttributes
 @Integration
 @Rollback
 class AdminIntegrationSpec extends Specification {
+
     AdminRegistryService adminRegistryService
     AdminMetadataService adminMetadataService
     AdminCrudService adminCrudService
@@ -21,8 +22,9 @@ class AdminIntegrationSpec extends Specification {
     AdminAccountService adminAccountService
 
     def setup() {
-        if (!adminAccountService.configured())
+        if (!adminAccountService.configured()) {
             adminAccountService.createInitialAccount('tester', 'example-password-123'.toCharArray(), 'example-password-123'.toCharArray())
+        }
         def request = new MockHttpServletRequest()
         request.getSession(true).setAttribute(AdminAuthenticationService.SESSION_KEY,
             AdminAccount.findBySlot('primary').sessionVersion)
@@ -250,4 +252,5 @@ class AdminIntegrationSpec extends Specification {
         account.hasErrors()
         !adminSecurityService.allowed(accountModel, 'delete')
     }
+
 }

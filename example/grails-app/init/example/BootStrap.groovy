@@ -1,6 +1,7 @@
 package example
 
 class BootStrap {
+
     def springSecurityService
     def init = { servletContext ->
         if (grails.util.Environment.current != grails.util.Environment.DEVELOPMENT) return
@@ -19,11 +20,13 @@ class BootStrap {
             }
         }
         LookupCode.withTransaction {
-            if (!LookupCode.count())
+            if (!LookupCode.count()) {
                 new LookupCode(code: 'DEMO-LOOKUP', description: 'Synthetic secondary-datasource value')
+            }
                     .save(failOnError: true, flush: true)
         }
     }
     def destroy = {
     }
+
 }
