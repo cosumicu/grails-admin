@@ -50,7 +50,7 @@ class AdminController {
     }
 
     def error() {
-        String errorId = request.getAttribute(AdminErrorFilter.ERROR_ID_ATTRIBUTE)?
+        String errorId = request.getAttribute(AdminErrorFilter.ERROR_ID_ATTRIBUTE)?.toString()
         if (!errorId) { adminStatus(404, 'Page not found', 'This admin page does not exist.'); return }
         render view: 'error', status: 500,
             model: [title: 'Internal server error', message: 'An unexpected error occurred. Please try again later.', errorId: errorId]
@@ -99,7 +99,7 @@ class AdminController {
             if (!adminLoginThrottleService.permitted(request.remoteAddr)) { render status: 429; return }
             if (adminAuthenticationService.login(params.username?.toString(), params.password?.toString())) {
                 adminLoginThrottleService.succeeded(request.remoteAddr)
-                String destination = request.getSession(false)?.getAttribute('grailsAdminReturnTo')?
+                String destination = request.getSession(false)?.getAttribute('grailsAdminReturnTo')?.toString()
                 request.getSession(false)?.removeAttribute('grailsAdminReturnTo')
                 redirect uri: (destination == '/admin' || destination?.startsWith('/admin/')) ? destination : '/admin'
             } else {

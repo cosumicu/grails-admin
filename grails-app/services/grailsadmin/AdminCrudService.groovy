@@ -34,7 +34,7 @@ class AdminCrudService {
         if (query && !searchFields) throw new IllegalArgumentException('No searchable fields are available')
         Map filters = [:]
         model.listFilter.each { field ->
-            String raw = params["filter_${field}"]?
+            String raw = params["filter_${field}"]?.toString()
             if (raw != null && !adminSecurityService.readable(model, field)) {
                 throw new IllegalArgumentException("Filter is not available: $field")
             }
@@ -188,8 +188,8 @@ class AdminCrudService {
             def target = type.get(raw.toLong())
             if (!target) {
                 throw new AdminFieldConversionException(field.name?.toString(), type,
-            }
                     new IllegalArgumentException('Unknown association'))
+            }
             return target
         }
         try {

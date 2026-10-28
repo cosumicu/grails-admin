@@ -19,10 +19,10 @@ class AdminRegistryService {
         if (initialized) return
         if (!enabled) { initialized = true; return }
         String auditSinkBean = grailsApplication.config.getProperty('grailsAdmin.auditSinkBean', String, '')
-        if (auditSinkBean && (!grailsApplication.mainContext.containsBean(auditSinkBean) || {
-            !(grailsApplication.mainContext.getBean(auditSinkBean) instanceof AdminAuditSink)))
-        }
+        if (auditSinkBean && (!grailsApplication.mainContext.containsBean(auditSinkBean) ||
+            !(grailsApplication.mainContext.getBean(auditSinkBean) instanceof AdminAuditSink))) {
             throw new IllegalArgumentException("Invalid admin audit sink: $auditSinkBean")
+        }
         Map configured = grailsApplication.config.getProperty('grailsAdmin.models', Map, [:]) ?: [:]
         configured.each { key, value -> register(key.toString(), value as Map) }
         initialized = true
@@ -31,7 +31,7 @@ class AdminRegistryService {
     synchronized AdminModel register(String key, Map options) {
         if (!key || !(key ==~ /[a-z][a-z0-9-]*/)) throw new IllegalArgumentException('Invalid model key')
         if (models.values().any { it.key == key }) throw new IllegalArgumentException("Duplicate admin model: $key")
-        String className = options.domain?
+        String className = options.domain?.toString()
         def artefact = className ? grailsApplication.getArtefact('Domain', className) : null
         if (!artefact) throw new IllegalArgumentException("Not a GORM domain: $className")
         Class domainClass = artefact.clazz
@@ -82,7 +82,7 @@ class AdminRegistryService {
         }
         (options.widgetTemplates ?: [:]).each { field, path ->
             String name = field
-            String templatePath = path?
+            String templatePath = path?.toString()
             if (!form.contains(name) || !(templatePath ==~ /\/admin\/widgets\/[A-Za-z][A-Za-z0-9\/_-]*/)) {
                 throw new IllegalArgumentException("Invalid admin widget template: $name")
             }
@@ -94,19 +94,19 @@ class AdminRegistryService {
         }
         (options.pageTemplates ?: [:]).each { page, path ->
             String name = page
-            String templatePath = path?
-            if (!(name in ['list', 'show', 'form', 'delete']) || {
-                !(templatePath ==~ /\/admin\/custom\/[A-Za-z][A-Za-z0-9\/_-]*/))
-            }
+            String templatePath = path?.toString()
+            if (!(name in ['list', 'show', 'form', 'delete']) ||
+                !(templatePath ==~ /\/admin\/custom\/[A-Za-z][A-Za-z0-9\/_-]*/)) {
                 throw new IllegalArgumentException("Invalid admin page template: $name")
+            }
             pageTemplates[name] = templatePath
         }
-        String writeHandlerBean = options.writeHandlerBean?
+        String writeHandlerBean = options.writeHandlerBean?.toString()
         if (writeHandlerBean && (!grailsApplication.mainContext.containsBean(writeHandlerBean) ||
             !(grailsApplication.mainContext.getBean(writeHandlerBean) instanceof AdminWriteHandler))) {
             throw new IllegalArgumentException("Invalid admin write handler: $writeHandlerBean")
             }
-        String scopeBean = options.scopeBean?
+        String scopeBean = options.scopeBean?.toString()
         if (scopeBean && (!grailsApplication.mainContext.containsBean(scopeBean) ||
             !(grailsApplication.mainContext.getBean(scopeBean) instanceof AdminQueryScope))) {
             throw new IllegalArgumentException("Invalid admin query scope: $scopeBean")
@@ -117,7 +117,7 @@ class AdminRegistryService {
         }
         (options.bulkActions ?: [:]).each { actionKey, beanName ->
             String action = actionKey
-            String bean = beanName?
+            String bean = beanName?.toString()
             if (!(action ==~ /[a-z][a-z0-9-]*/) || !bean ||
                 !grailsApplication.mainContext.containsBean(bean) ||
                 !(grailsApplication.mainContext.getBean(bean) instanceof AdminBulkAction)) {
@@ -127,9 +127,10 @@ class AdminRegistryService {
             if (!(implementation.permission in ['change', 'delete']) || !implementation.label) {
                 throw new IllegalArgumentException("Invalid admin bulk action contract: $action")
             }
-            if (implementation.permission == 'change' && (!implementation.fields || {
-                implementation.fields.any { !metadata.byName.containsKey(it) || readonly.contains(it) }))
+            if (implementation.permission == 'change' && (!implementation.fields ||
+                implementation.fields.any { !metadata.byName.containsKey(it) || readonly.contains(it) })) {
                 throw new IllegalArgumentException("Invalid admin bulk action fields: $action")
+            }
             bulkActions[action] = bean
             }
         int displayOrder = 100

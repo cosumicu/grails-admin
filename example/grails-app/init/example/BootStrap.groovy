@@ -22,8 +22,8 @@ class BootStrap {
         LookupCode.withTransaction {
             if (!LookupCode.count()) {
                 new LookupCode(code: 'DEMO-LOOKUP', description: 'Synthetic secondary-datasource value')
-            }
                     .save(failOnError: true, flush: true)
+            }
         }
     }
     def destroy = {
