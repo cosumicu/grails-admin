@@ -1,9 +1,10 @@
 param(
-    [string]$GradleTask = 'runCommand',
+    [string]$GradleTask = ':grailsAdminSetup',
     [string[]]$ExtraGradleArgs = @()
 )
 
 $wrapper = Join-Path (Get-Location) 'gradlew.bat'
+$initScript = Join-Path $PSScriptRoot 'admin-setup.init.gradle'
 if (-not (Test-Path -LiteralPath $wrapper)) {
     throw 'Run this launcher from the main Grails application directory containing gradlew.bat.'
 }
@@ -31,7 +32,7 @@ try {
         if ($proceed) { $env:GRAILS_ADMIN_SETUP_PASSWORD_WARNING_ACCEPTED = 'yes' }
     }
     if ($proceed) {
-        & $wrapper $GradleTask '-Pargs=admin-setup' @ExtraGradleArgs
+        & $wrapper --init-script $initScript $GradleTask @ExtraGradleArgs
         $result = $LASTEXITCODE
     } else {
         Write-Host 'Setup cancelled.'

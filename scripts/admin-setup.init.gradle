@@ -1,0 +1,25 @@
+import org.gradle.api.tasks.JavaExec
+
+gradle.projectsEvaluated {
+    gradle.rootProject.allprojects.each { host ->
+        if (!host.tasks.findByName('runCommand') || !host.tasks.findByName('findMainClass')) return
+
+        host.tasks.register('grailsAdminSetup', JavaExec) {
+            group = 'application'
+            description = 'Create the initial Grails Admin account in this application'
+            dependsOn host.tasks.named('classes'), host.tasks.named('findMainClass')
+            classpath = host.sourceSets.main.runtimeClasspath + host.configurations.console
+            mainClass = 'grailsadmin.AdminSetupLauncher'
+            systemProperty 'grails.env', System.getProperty('grails.env', 'development')
+
+            doFirst {
+                String applicationClass = host.ext.has('mainClassName') ?
+                    host.ext.get('mainClassName')?.toString()?.trim() : null
+                if (!applicationClass) {
+                    throw new GradleException("Could not find the application class for ${host.path}")
+                }
+                systemProperty 'grails.admin.setup.applicationClass', applicationClass
+            }
+        }
+    }
+}
