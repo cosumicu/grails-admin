@@ -21,13 +21,13 @@ The `example` application contains synthetic banking, authentication, audit, and
 
 ```powershell
 $env:JAVA_HOME = 'C:\Program Files\Java\jdk-17' # adjust for your JDK
-.\scripts\admin-setup.ps1 -GradleTask ':example:runCommand'
+.\scripts\admin-setup.cmd -GradleTask :example:grailsAdminSetup
 .\gradlew.bat :example:bootRun
 ```
 
 The setup script prompts for an admin username and hidden password. Open `http://localhost:8080/admin/login` after the app starts. The development account persists in the example's file-backed H2 database.
 
-If PowerShell script execution is restricted, use `.\scripts\admin-setup.cmd -GradleTask :example:runCommand`. To run the example without its optional host Spring Security dependency, pass `-PwithoutHostSecurity` to `:example:bootRun` and `-ExtraGradleArgs '-PwithoutHostSecurity'` to the setup script. See the [example README](example/README.md).
+The `.cmd` launcher works from Command Prompt and PowerShell even when PowerShell script execution is restricted. To run the example without its optional host Spring Security dependency, pass `-PwithoutHostSecurity` to `:example:bootRun` and `-ExtraGradleArgs '-PwithoutHostSecurity'` to the setup script. See the [example README](example/README.md).
 
 ## Install in a host application
 
@@ -40,7 +40,7 @@ project(':grails-admin').projectDir = file('../grails-admin')
 
 Add `implementation project(':grails-admin')` to the host's `build.gradle` dependencies. Adjust the relative path if your checkouts have a different layout.
 
-Copy [admin-setup.ps1](scripts/admin-setup.ps1) and [admin-setup.cmd](scripts/admin-setup.cmd) into the host application's `scripts` directory. Run `scripts\admin-setup.cmd` from the **host application's directory** to create the one admin account in its primary datasource. The launchers are also packaged in the plugin jar under `META-INF/grails-admin/setup/`.
+From the **host application's directory**, run `..\grails-admin\scripts\admin-setup.cmd` in Command Prompt, or `& ..\grails-admin\scripts\admin-setup.cmd` in PowerShell. That single command prompts for credentials and creates the one admin account in the host's primary datasource. If the checkouts are not siblings, adjust the path or copy [admin-setup.ps1](scripts/admin-setup.ps1), [admin-setup.cmd](scripts/admin-setup.cmd), and [admin-setup.init.gradle](scripts/admin-setup.init.gradle) into the host application's `scripts` directory. The setup files are also packaged in the plugin jar under `META-INF/grails-admin/setup/`.
 
 The setup command refuses to replace an existing account. Without an account, admin requests remain locked. For deployments without automatic schema updates, apply the [starter account migration](docs/admin-account-schema.sql) through the host's migration process. It covers H2 and PostgreSQL; adapt it for other databases.
 
@@ -92,7 +92,7 @@ You can also call `adminRegistryService.register('customer', [domain: 'com.examp
 
 ## Authentication and security
 
-Run `admin-setup` once for each host datasource. The launcher collects credentials without putting the password in process arguments. Passwords shorter than 12 characters or longer than 72 UTF-8 bytes require an explicit warning acknowledgement. For automated provisioning, supply short-lived `GRAILS_ADMIN_SETUP_USERNAME`, `GRAILS_ADMIN_SETUP_PASSWORD`, and `GRAILS_ADMIN_SETUP_CONFIRMATION` environment variables, then run `gradlew.bat runCommand -Pargs=admin-setup` in the host app. Also set `GRAILS_ADMIN_SETUP_PASSWORD_WARNING_ACCEPTED=yes` when acknowledging a password outside the recommended range. Clear these variables afterward.
+Run `admin-setup` once for each host datasource. The launcher collects credentials without putting the password in process arguments. Passwords shorter than 12 characters or longer than 72 UTF-8 bytes require an explicit warning acknowledgement. For automated provisioning, supply short-lived `GRAILS_ADMIN_SETUP_USERNAME`, `GRAILS_ADMIN_SETUP_PASSWORD`, and `GRAILS_ADMIN_SETUP_CONFIRMATION` environment variables, then run `gradlew.bat --init-script scripts/admin-setup.init.gradle :grailsAdminSetup` in the host app. Also set `GRAILS_ADMIN_SETUP_PASSWORD_WARNING_ACCEPTED=yes` when acknowledging a password outside the recommended range. Clear these variables afterward.
 
 The admin login is independent of the host login; signing out of `/admin` only ends the plugin session. A host may register an `adminAccessPolicy` Spring bean implementing [AdminAccessPolicy](src/main/groovy/grailsadmin/AdminAccessPolicy.groovy) for additional model and field restrictions. Generated writes use an explicit field allowlist, GORM validation, and Grails form tokens. Use HTTPS and secure, HTTP-only session cookies in deployment.
 
