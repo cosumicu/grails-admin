@@ -125,16 +125,20 @@ class AdminCrudService {
         audit(model, 'delete', [record.id as Long])
     }
 
-    List options(Map field) {
+    List options(Map field, String selectedId = null) {
         if (!field.association) return []
         AdminModel target = adminRegistryService.all().find { it.domainClass == field.type }
         if (!target || !adminSecurityService.allowed(target, 'view')) return []
         field.type.withTransaction([readOnly: true]) {
-            if (!target.scopeBean) return field.type.list(max: 100, sort: 'id', order: 'asc')
-            field.type.createCriteria().list(max: 100) {
+            List choices = field.type.createCriteria().list(max: 100) {
                 applyScope(target, 'view', delegate)
                 order('id', 'asc')
             }
+            if (selectedId && !choices.any { it.id?.toString() == selectedId }) {
+                Object selected = getInTransaction(target, selectedId, 'view')
+                if (selected) choices = choices.toList() + selected
+            }
+            choices
         }
     }
 

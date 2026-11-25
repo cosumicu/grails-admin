@@ -5,6 +5,41 @@ import spock.lang.Specification
 
 class AdminControllerSpec extends Specification implements ControllerUnitTest<AdminController> {
 
+    void 'create loads choices only for editable configured associations'() {
+        given:
+        def adminModel = new AdminModel('thing', 'General', 'thing', 'Thing', Expando,
+            [], [], [], [], ['readonly'], ['editable', 'readonly', 'denied'], true, true, false,
+            null, null, [:], 100, [:], [:], [:])
+        Map fields = ['editable', 'readonly', 'denied', 'omitted'].collectEntries {
+            [(it): [name: it, association: true, type: Object]]
+        }
+        params.group = 'general'
+        params.model = 'thing'
+        controller.adminRegistryService = Stub(AdminRegistryService) {
+            isEnabled() >> true
+            resolve('general', 'thing') >> adminModel
+            all() >> [adminModel]
+        }
+        controller.adminSecurityService = Stub(AdminSecurityService) {
+            authenticated() >> true
+            allowed(_, _) >> true
+            fieldWritable(adminModel, 'editable', 'add') >> true
+        }
+        controller.adminMetadataService = Stub(AdminMetadataService) {
+            inspect(Expando) >> [fields: fields.values().toList(), byName: fields]
+        }
+        def crud = Mock(AdminCrudService)
+        controller.adminCrudService = crud
+
+        when:
+        controller.create()
+
+        then:
+        1 * crud.options(fields.editable, null) >> []
+        0 * crud.options(_, _)
+        model.options == [editable: []]
+    }
+
     void 'disabled plugin hides the dashboard'() {
         given:
         controller.adminRegistryService = Stub(AdminRegistryService) { isEnabled() >> false }

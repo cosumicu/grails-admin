@@ -136,6 +136,33 @@ class AdminIntegrationSpec extends Specification {
         thrown(SecurityException)
     }
 
+    void 'association choices retain a selected record beyond the first hundred'() {
+        given:
+        (1..101).each { n ->
+            new Customer(firstName: "Choice${n}", lastName: 'Test', email: "choice${n}@example.com")
+                .save(failOnError: true)
+        }
+        Customer.withSession { it.flush(); it.clear() }
+        def selected = Customer.findByEmail('choice101@example.com')
+        Map field = adminMetadataService.inspect(Account).byName.customer
+
+        when:
+        def choices = adminCrudService.options(field, selected.id.toString())
+
+        then:
+        choices.size() == 101
+        choices.last().id == selected.id
+        adminCrudService.options(field, 'invalid').size() == 100
+    }
+
+    void 'association choices never append a record outside the target scope'() {
+        given:
+        def hidden = new AuditLog(actor: 'other', action: 'Hidden option').save(failOnError: true, flush: true)
+
+        expect:
+        !adminCrudService.options([association: true, type: AuditLog], hidden.id.toString())*.id.contains(hidden.id)
+    }
+
     void 'filtering and validation use domain constraints'() {
         given:
         SecurityContextHolder.context.authentication = new UsernamePasswordAuthenticationToken(
