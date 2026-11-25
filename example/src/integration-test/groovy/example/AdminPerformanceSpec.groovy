@@ -80,6 +80,19 @@ class AdminPerformanceSpec extends Specification {
         !filtered.hasNext
         println "ADMIN_PERF countDisabledStatements=${withoutCount}"
 
+        when:
+        sessionFactory.currentSession.clear()
+        statistics.clear()
+        def record = adminCrudService.get(adminRegistryService.resolve('banking', 'account'), first.records.first().id.toString())
+        long detailStatements = statistics.prepareStatementCount
+        String label = record.customer.toString()
+
+        then:
+        label
+        detailStatements == 1
+        statistics.prepareStatementCount == detailStatements
+        println "ADMIN_PERF detailStatements=${detailStatements} detailRelationshipStatements=0"
+
         cleanup:
         statistics.statisticsEnabled = previouslyEnabled
         grailsApplication.config.grailsAdmin.countTotal = true
