@@ -40,7 +40,7 @@ class AdminPerformanceSpec extends Specification {
         long statements = statistics.prepareStatementCount
 
         then:
-        statements > 0
+        statements == 1
         println "ADMIN_PERF permissionChecks=100 statements=${statements} elapsedMs=${(System.nanoTime() - started) / 1_000_000d}"
 
         cleanup:

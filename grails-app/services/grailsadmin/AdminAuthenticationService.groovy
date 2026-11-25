@@ -5,19 +5,30 @@ import org.springframework.web.context.request.RequestContextHolder
 class AdminAuthenticationService {
 
     static final String SESSION_KEY = 'grailsAdminAuthenticationVersion'
+    private static final String ACCOUNT_KEY = 'grailsAdminRequestAccount'
 
     AdminAccountService adminAccountService
 
     private static request() { RequestContextHolder.getRequestAttributes()?.request }
 
     boolean authenticated() {
-        def session = request()?.getSession(false)
-        session && adminAccountService.currentAccount(session.getAttribute(SESSION_KEY)?.toString()) != null
+        currentAccount() != null
     }
 
     String username() {
-        def session = request()?.getSession(false)
-        adminAccountService.currentAccount(session?.getAttribute(SESSION_KEY)?.toString())?.username ?: ''
+        currentAccount()?.username ?: ''
+    }
+
+    private AdminAccount currentAccount() {
+        def httpRequest = request()
+        String version = httpRequest?.getSession(false)?.getAttribute(SESSION_KEY)?.toString()
+        if (!version) return null
+        Map cached = httpRequest.getAttribute(ACCOUNT_KEY) as Map
+        if (cached == null || cached.version != version) {
+            cached = [version: version, account: adminAccountService.currentAccount(version)]
+            httpRequest.setAttribute(ACCOUNT_KEY, cached)
+        }
+        cached.account as AdminAccount
     }
 
     boolean login(String username, String password) {
@@ -28,11 +39,13 @@ class AdminAuthenticationService {
         httpRequest.getSession(true)
         httpRequest.changeSessionId()
         httpRequest.getSession(true).setAttribute(SESSION_KEY, account.sessionVersion)
+        httpRequest.removeAttribute(ACCOUNT_KEY)
         true
     }
 
     void logout() {
         request()?.getSession(false)?.removeAttribute(SESSION_KEY)
+        request()?.removeAttribute(ACCOUNT_KEY)
     }
 
 }
