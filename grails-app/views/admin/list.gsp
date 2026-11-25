@@ -10,7 +10,7 @@
     <g:each in="${visibleFilters}" var="field"><input type="hidden" name="filter_${field}" value="${params['filter_' + field]}"/></g:each>
     <button type="submit">Search</button>
 </g:form></g:if>
-<g:render template="results" model="${[adminModel:adminModel, metadata:metadata, records:records, total:total, page:page, max:max, sort:sort, order:order, query:query, linkParams:linkParams, bulkActions:bulkActions, adminSecurityService:adminSecurityService]}"/>
+<g:render template="results" model="${[adminModel:adminModel, metadata:metadata, records:records, total:total, hasNext:hasNext, page:page, max:max, sort:sort, order:order, query:query, linkParams:linkParams, bulkActions:bulkActions, adminSecurityService:adminSecurityService]}"/>
 </div>
 <g:if test="${visibleFilters}"><aside class="list-filters" aria-label="List filters"><h2>Filter</h2>
 <g:form method="get" uri="/admin/${params.group}/${params.model}">

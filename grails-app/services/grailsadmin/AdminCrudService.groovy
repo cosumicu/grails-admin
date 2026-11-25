@@ -20,7 +20,8 @@ class AdminCrudService {
         Map meta = adminMetadataService.inspect(model.domainClass)
         int maxPageSize = grailsApplication.config.getProperty('grailsAdmin.maxPageSize', Integer, 100)
         int requested = positive(integer(params.max), 25)
-        int max = Math.min(Math.max(1, maxPageSize), requested)
+        int max = Math.min(Integer.MAX_VALUE - 1, Math.min(Math.max(1, maxPageSize), requested))
+        boolean countTotal = grailsApplication.config.getProperty('grailsAdmin.countTotal', Boolean, true)
         int page = positive(integer(params.page), 1)
         int offset = (int) Math.min(Integer.MAX_VALUE - max, ((long) page - 1L) * max)
         List<String> sortable = model.listDisplay.findAll {
@@ -41,7 +42,7 @@ class AdminCrudService {
             if (raw != null && raw.length() > 100) throw new IllegalArgumentException("Filter is too long: $field")
             if (raw?.trim()) filters[field] = convert(meta.byName[field], raw.trim())
         }
-        def result = model.domainClass.createCriteria().list(max: max, offset: offset) {
+        def result = model.domainClass.createCriteria().list(max: countTotal ? max : max + 1, offset: offset) {
             applyScope(model, 'view', delegate)
             model.listDisplay.findAll { meta.byName[it].association }.each { field -> fetchMode(field, FetchMode.JOIN) }
             if (query && searchFields) {
@@ -52,7 +53,10 @@ class AdminCrudService {
             filters.each { field, value -> eq(field, value) }
             order(sort, direction)
         }
-        [records: result, total: result.totalCount, page: page, max: max, sort: sort, order: direction, query: query ?: '', filters: filters]
+        Integer total = countTotal ? result.totalCount : null
+        boolean hasNext = countTotal ? ((long) offset + max < total) : result.size() > max
+        [records: countTotal ? result : result.take(max), total: total, hasNext: hasNext,
+         page: page, max: max, sort: sort, order: direction, query: query ?: '', filters: filters]
     }
 
     Object get(AdminModel model, String id, String operation = 'view') {
@@ -125,16 +129,20 @@ class AdminCrudService {
         audit(model, 'delete', [record.id as Long])
     }
 
-    List options(Map field) {
+    List options(Map field, String selectedId = null) {
         if (!field.association) return []
         AdminModel target = adminRegistryService.all().find { it.domainClass == field.type }
         if (!target || !adminSecurityService.allowed(target, 'view')) return []
         field.type.withTransaction([readOnly: true]) {
-            if (!target.scopeBean) return field.type.list(max: 100, sort: 'id', order: 'asc')
-            field.type.createCriteria().list(max: 100) {
+            List choices = field.type.createCriteria().list(max: 100) {
                 applyScope(target, 'view', delegate)
                 order('id', 'asc')
             }
+            if (selectedId && !choices.any { it.id?.toString() == selectedId }) {
+                Object selected = getInTransaction(target, selectedId, 'view')
+                if (selected) choices = choices.toList() + selected
+            }
+            choices
         }
     }
 

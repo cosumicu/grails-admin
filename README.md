@@ -40,6 +40,8 @@ project(':grails-admin').projectDir = file('../grails-admin')
 
 Add `implementation project(':grails-admin')` to the host's `build.gradle` dependencies. Adjust the relative path if your checkouts have a different layout.
 
+Start only your host application. The plugin serves `/admin` inside that application's JVM and web server and uses its configured datasources. It does not run a separate admin server. The repository's `example` application is a demonstration host; you do not run it alongside your own application. A Gradle daemon used during development is a build process, not another admin application.
+
 From the **host application's directory**, run `..\grails-admin\scripts\admin-setup.cmd` in Command Prompt, or `& ..\grails-admin\scripts\admin-setup.cmd` in PowerShell. That single command prompts for credentials and creates the one admin account in the host's primary datasource. If the checkouts are not siblings, adjust the path or copy [admin-setup.ps1](scripts/admin-setup.ps1), [admin-setup.cmd](scripts/admin-setup.cmd), and [admin-setup.init.gradle](scripts/admin-setup.init.gradle) into the host application's `scripts` directory. The setup files are also packaged in the plugin jar under `META-INF/grails-admin/setup/`.
 
 The setup command refuses to replace an existing account. Without an account, admin requests remain locked. For deployments without automatic schema updates, apply the [starter account migration](docs/admin-account-schema.sql) through the host's migration process. It covers H2 and PostgreSQL; adapt it for other databases.
@@ -88,6 +90,8 @@ Replace the illustrative domain and fields with your own persistent GORM domain.
 
 Lists default to 25 records per page and respect `maxPageSize` (default 100). Omitted `listDisplay` uses the first four eligible fields. Search fields must be text fields. Association choices are capped at 100 records and their target domain must also be registered and viewable before editing.
 
+For large tables, set `grailsAdmin.countTotal: false` to skip the exact count query. Lists then fetch one extra row to decide whether to show Next and omit the total record count. Exact totals remain enabled by default. Association selectors also include the current permitted selection when it falls outside the first 100 choices.
+
 You can also call `adminRegistryService.register('customer', [domain: 'com.example.Customer', group: 'Sales'])` during application setup, before serving admin requests.
 
 ## Authentication and security
@@ -131,3 +135,5 @@ From the repository root:
 ```
 
 Integration tests use in-memory H2 by default. To test against an isolated PostgreSQL database, set `GRAILS_ADMIN_TEST_DB_DRIVER`, `GRAILS_ADMIN_TEST_DB_URL`, `GRAILS_ADMIN_TEST_DB_USER`, and `GRAILS_ADMIN_TEST_DB_PASSWORD` before running `:example:integrationTest`. The test profile uses `dbCreate: update`, so use a disposable database.
+
+See [performance measurements](docs/performance.md) for the Phase 1 query results and commands to measure the example host's pages, startup, and memory.

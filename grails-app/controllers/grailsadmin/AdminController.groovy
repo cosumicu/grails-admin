@@ -123,7 +123,7 @@ class AdminController {
         try {
             Map data = adminCrudService.page(m, params)
             Map meta = adminMetadataService.inspect(m.domainClass)
-            Map linkParams = [q: data.query]
+            Map linkParams = [q: data.query, max: data.max]
             m.listFilter.each { field ->
                 if (data.filters.containsKey(field)) linkParams["filter_${field}"] = params["filter_${field}"]?.toString()
             }
@@ -178,7 +178,14 @@ class AdminController {
     private void form(AdminModel m, Object record, boolean creating, String saveError = null,
                       Map submittedValues = [:], Map extraFieldErrors = [:]) {
         Map meta = adminMetadataService.inspect(m.domainClass)
-        Map options = meta.fields.findAll { it.association }.collectEntries { [(it.name): adminCrudService.options(it)] }
+        String operation = creating ? 'add' : 'change'
+        Map options = m.formFields.findAll { name ->
+            meta.byName[name].association && !m.readonlyFields.contains(name) &&
+                adminSecurityService.fieldWritable(m, name, operation)
+        }.collectEntries { name ->
+            String selectedId = submittedValues.containsKey(name) ? submittedValues[name]?.toString() : record[name]?.id?.toString()
+            [(name): adminCrudService.options(meta.byName[name], selectedId)]
+        }
         Map validation = AdminFormErrors.collect(record, messageSource, LocaleContextHolder.locale, meta.byName)
         render view: pageView(m, 'form'), model: common(m) + [record: record, metadata: meta, options: options,
             creating: creating, saveError: saveError, submittedValues: submittedValues,
