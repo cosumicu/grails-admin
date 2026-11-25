@@ -1,0 +1,12 @@
+gradle.projectsEvaluated {
+    def host = gradle.rootProject.project(':example')
+    host.tasks.register('adminPerformanceClasspath') {
+        dependsOn host.tasks.named('classes'), gradle.rootProject.tasks.named('jar')
+        doLast {
+            def out = gradle.rootProject.file('build/performance')
+            out.mkdirs()
+            new File(out, 'classpath.txt').text = (host.sourceSets.main.runtimeClasspath + host.configurations.console).asPath
+            new File(out, 'runtime-dependencies.txt').text = host.configurations.runtimeClasspath.resolvedConfiguration.resolvedArtifacts.collect { it.moduleVersion.id.toString() }.sort().join('\n')
+        }
+    }
+}
