@@ -123,7 +123,7 @@ class AdminController {
         try {
             Map data = adminCrudService.page(m, params)
             Map meta = adminMetadataService.inspect(m.domainClass)
-            Map linkParams = [q: data.query]
+            Map linkParams = [q: data.query, max: data.max]
             m.listFilter.each { field ->
                 if (data.filters.containsKey(field)) linkParams["filter_${field}"] = params["filter_${field}"]?.toString()
             }

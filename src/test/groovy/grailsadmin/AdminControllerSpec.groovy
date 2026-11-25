@@ -5,6 +5,32 @@ import spock.lang.Specification
 
 class AdminControllerSpec extends Specification implements ControllerUnitTest<AdminController> {
 
+    void 'pager supports optional totals and preserves the page size'() {
+        given:
+        webRequest.controllerName = 'admin'
+        def adminModel = new AdminModel('thing', 'General', 'thing', 'Thing', Object,
+            [], [], [], [], [], [], true, true, false, null, null, [:], 100, [:], [:], [:])
+        params.group = 'general'
+        params.model = 'thing'
+
+        when:
+        String page = render(template: '/admin/results', model: [adminModel: adminModel,
+            metadata: [byName: [:]], records: [], total: total, hasNext: hasNext,
+            page: 2, max: 10, sort: 'id', order: 'asc', linkParams: [max: 10], bulkActions: []])
+
+        then:
+        page.contains('Previous')
+        page.contains('max=10')
+        page.contains('Next') == hasNext
+        page.contains('records</span>') == (total != null)
+
+        where:
+        total | hasNext
+        null  | true
+        null  | false
+        20    | false
+    }
+
     void 'create loads choices only for editable configured associations'() {
         given:
         def adminModel = new AdminModel('thing', 'General', 'thing', 'Thing', Expando,

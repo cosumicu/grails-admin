@@ -3,6 +3,7 @@ package example
 import grails.testing.mixin.integration.Integration
 import grails.gorm.transactions.Rollback
 import grailsadmin.*
+import grails.core.GrailsApplication
 import org.hibernate.SessionFactory
 import org.springframework.mock.web.MockHttpServletRequest
 import org.springframework.web.context.request.RequestContextHolder
@@ -17,6 +18,7 @@ class AdminPerformanceSpec extends Specification {
     AdminRegistryService adminRegistryService
     AdminCrudService adminCrudService
     SessionFactory sessionFactory
+    GrailsApplication grailsApplication
 
     void 'measure list counts and relationship rendering'() {
         given:
@@ -47,15 +49,40 @@ class AdminPerformanceSpec extends Specification {
         def page = adminCrudService.page(adminRegistryService.resolve('banking', 'account'), [max: '25'])
         long pageStatements = statistics.prepareStatementCount
         page.records.each { assert it.customer.toString() }
+        long renderedStatements = statistics.prepareStatementCount
 
         then:
         page.records.size() == 25
         page.total == 30
-        statistics.prepareStatementCount == pageStatements
-        println "ADMIN_PERF listRows=25 pageStatements=${pageStatements} relationshipStatements=${statistics.prepareStatementCount - pageStatements} elapsedMs=${(System.nanoTime() - started) / 1_000_000d}"
+        renderedStatements == pageStatements
+        println "ADMIN_PERF listRows=25 pageStatements=${pageStatements} relationshipStatements=${renderedStatements - pageStatements} elapsedMs=${(System.nanoTime() - started) / 1_000_000d}"
+
+        when:
+        grailsApplication.config.grailsAdmin.countTotal = false
+        sessionFactory.currentSession.clear()
+        statistics.clear()
+        def first = adminCrudService.page(adminRegistryService.resolve('banking', 'account'), [max: '25'])
+        long withoutCount = statistics.prepareStatementCount
+        def last = adminCrudService.page(adminRegistryService.resolve('banking', 'account'), [max: '25', page: '2'])
+        def empty = adminCrudService.page(adminRegistryService.resolve('banking', 'account'), [max: '25', page: '3'])
+        def filtered = adminCrudService.page(adminRegistryService.resolve('banking', 'customer'), [q: 'Perf29', max: '1'])
+
+        then:
+        withoutCount == 1
+        first.total == null
+        first.records*.id == page.records*.id
+        first.hasNext
+        last.records.size() == 5
+        !last.hasNext
+        empty.records.empty
+        !empty.hasNext
+        filtered.records*.firstName == ['Perf29']
+        !filtered.hasNext
+        println "ADMIN_PERF countDisabledStatements=${withoutCount}"
 
         cleanup:
         statistics.statisticsEnabled = previouslyEnabled
+        grailsApplication.config.grailsAdmin.countTotal = true
         RequestContextHolder.resetRequestAttributes()
     }
 

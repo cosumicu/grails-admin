@@ -88,6 +88,8 @@ Replace the illustrative domain and fields with your own persistent GORM domain.
 
 Lists default to 25 records per page and respect `maxPageSize` (default 100). Omitted `listDisplay` uses the first four eligible fields. Search fields must be text fields. Association choices are capped at 100 records and their target domain must also be registered and viewable before editing.
 
+For large tables, set `grailsAdmin.countTotal: false` to skip the exact count query. Lists then fetch one extra row to decide whether to show Next and omit the total record count. Exact totals remain enabled by default. Association selectors also include the current permitted selection when it falls outside the first 100 choices.
+
 You can also call `adminRegistryService.register('customer', [domain: 'com.example.Customer', group: 'Sales'])` during application setup, before serving admin requests.
 
 ## Authentication and security
