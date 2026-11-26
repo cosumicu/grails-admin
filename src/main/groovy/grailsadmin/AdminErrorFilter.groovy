@@ -11,6 +11,9 @@ class AdminErrorFilter extends OncePerRequestFilter {
 
     private static final String PREFIX = '\u001B[1;31m[GRAILS-ADMIN ERROR]\u001B[0m'
     static final String ERROR_ID_ATTRIBUTE = 'grailsAdminErrorId'
+    final String basePath
+
+    AdminErrorFilter(String basePath = '/admin') { this.basePath = basePath }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
@@ -19,7 +22,7 @@ class AdminErrorFilter extends OncePerRequestFilter {
             chain.doFilter(request, response)
         } catch (Exception error) {
             String errorId = UUID.randomUUID()
-            String path = (request.requestURI?.substring(request.contextPath?.length() ?: 0) ?: '/admin')
+            String path = (request.requestURI?.substring(request.contextPath?.length() ?: 0) ?: basePath)
                 .replaceAll(/[\r\n\u001B]/, ' ')
             System.err.println("${PREFIX} ${errorId} ${request.method} ${path}: unexpected failure")
             error.printStackTrace(System.err)
@@ -28,7 +31,7 @@ class AdminErrorFilter extends OncePerRequestFilter {
             response.reset()
             request.setAttribute(ERROR_ID_ATTRIBUTE, errorId)
             try {
-                request.getRequestDispatcher('/admin/error').forward(request, response)
+                request.getRequestDispatcher("$basePath/error").forward(request, response)
             } catch (Exception renderingError) {
                 if (response.committed) throw renderingError
                 response.reset()
@@ -36,7 +39,7 @@ class AdminErrorFilter extends OncePerRequestFilter {
                 response.contentType = 'text/html;charset=UTF-8'
                 response.writer.write('<!doctype html><html><head><title>Grails Admin error</title></head>' +
                     '<body><h1>Grails Administration</h1><p>An unexpected error occurred.</p>' +
-                    '<p>Error ID: ' + errorId + '</p><a href="/admin">Admin home</a></body></html>')
+                    '<p>Error ID: ' + errorId + '</p><a href="' + request.contextPath + basePath + '">Admin home</a></body></html>')
             }
         }
             }

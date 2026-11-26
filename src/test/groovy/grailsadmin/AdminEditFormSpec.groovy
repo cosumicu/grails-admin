@@ -77,7 +77,7 @@ class AdminEditFormSpec extends Specification implements ControllerUnitTest<Admi
             adminSecurityService: controller.adminSecurityService,
             submittedValues: [transactionId: 'MY-INPUT', receivedAt: 'not-a-date'],
             fieldErrors: [receivedAt: 'Enter a valid date for Received At (YYYY-MM-DD).'],
-            generalErrors: [], saveError: 'Correct the highlighted field and try again.'])
+            generalErrors: [], saveError: 'Correct the highlighted field and try again.', adminPath: '/admin'])
 
         then:
         page.contains('value="MY-INPUT"')

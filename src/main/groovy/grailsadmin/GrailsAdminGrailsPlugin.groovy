@@ -14,10 +14,11 @@ class GrailsAdminGrailsPlugin extends Plugin {
     def pluginExcludes = ['grails-app/views/index.gsp', 'grails-app/views/error.gsp', 'grails-app/views/notFound.gsp']
 
     Closure doWithSpring() {
-        { ->
+        String base = AdminPath.from(grailsApplication.config)
+        return { ->
             grailsAdminErrorFilterRegistration(FilterRegistrationBean) {
-                filter = new AdminErrorFilter()
-                urlPatterns = ['/admin', '/admin/*']
+                filter = new AdminErrorFilter(base)
+                urlPatterns = [base, "$base/*"]
                 order = Ordered.HIGHEST_PRECEDENCE + 50
             }
         }
