@@ -6,8 +6,8 @@
 <g:each in="${groups}" var="entry">
     <section class="panel"><h2><g:encodeAs codec="HTML">${entry.key}</g:encodeAs></h2>
         <div class="model-grid"><g:each in="${entry.value}" var="item">
-            <div class="model-row"><a href="${createLink(uri:'/admin/' + grailsadmin.AdminRegistryService.slug(item.group) + '/' + item.slug)}"><g:encodeAs codec="HTML">${item.label}</g:encodeAs></a>
-                <g:if test="${adminSecurityService.allowed(item, 'add')}"><a class="minor" href="${createLink(uri:'/admin/' + grailsadmin.AdminRegistryService.slug(item.group) + '/' + item.slug + '/create')}">Add</a></g:if>
+            <div class="model-row"><a href="${createLink(uri:adminPath + '/' + grailsadmin.AdminRegistryService.slug(item.group) + '/' + item.slug)}"><g:encodeAs codec="HTML">${item.label}</g:encodeAs></a>
+                <g:if test="${adminSecurityService.allowed(item, 'add')}"><a class="minor" href="${createLink(uri:adminPath + '/' + grailsadmin.AdminRegistryService.slug(item.group) + '/' + item.slug + '/create')}">Add</a></g:if>
             </div>
         </g:each></div>
     </section>

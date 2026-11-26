@@ -39,4 +39,23 @@ class AdminErrorFilterSpec extends Specification {
         'rendering'  | new ServletException('Rendering failed')
     }
 
+    void 'custom base path forwards errors to its own route'() {
+        given:
+        def request = new MockHttpServletRequest('GET', '/backoffice/orders')
+        def response = new MockHttpServletResponse()
+        def previous = System.err
+        FilterChain chain = Stub(FilterChain) { doFilter(_, _) >> { throw new IllegalStateException('failed') } }
+
+        when:
+        try {
+            System.setErr(new PrintStream(new ByteArrayOutputStream()))
+            new AdminErrorFilter('/backoffice').doFilter(request, response, chain)
+        } finally {
+            System.setErr(previous)
+        }
+
+        then:
+        response.forwardedUrl == '/backoffice/error'
+    }
+
 }

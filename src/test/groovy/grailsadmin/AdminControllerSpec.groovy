@@ -16,7 +16,7 @@ class AdminControllerSpec extends Specification implements ControllerUnitTest<Ad
         when:
         String page = render(template: '/admin/results', model: [adminModel: adminModel,
             metadata: [byName: [:]], records: [], total: total, hasNext: hasNext,
-            page: 2, max: 10, sort: 'id', order: 'asc', linkParams: [max: 10], bulkActions: []])
+            page: 2, max: 10, sort: 'id', order: 'asc', linkParams: [max: 10], bulkActions: [], adminPath: '/admin'])
 
         then:
         page.contains('Previous')
@@ -86,6 +86,37 @@ class AdminControllerSpec extends Specification implements ControllerUnitTest<Ad
         then:
         response.status == 302
         response.redirectedUrl == '/admin/login'
+    }
+
+    void 'custom base path is used for login redirect'() {
+        given:
+        grailsApplication.config.grailsAdmin.basePath = '/backoffice'
+        controller.adminRegistryService = Stub(AdminRegistryService) { isEnabled() >> true }
+        controller.adminSecurityService = Stub(AdminSecurityService) { authenticated() >> false }
+
+        when:
+        controller.index()
+
+        then:
+        response.redirectedUrl == '/backoffice/login'
+
+        cleanup:
+        grailsApplication.config.grailsAdmin.basePath = '/admin'
+    }
+
+    void 'old admin route is rejected when the base path changes'() {
+        given:
+        grailsApplication.config.grailsAdmin.basePath = '/backoffice'
+        request.setRequestURI('/admin/login')
+
+        when:
+        controller.login()
+
+        then:
+        response.status == 404
+
+        cleanup:
+        grailsApplication.config.grailsAdmin.basePath = '/admin'
     }
 
     void 'unknown registered model returns 404'() {

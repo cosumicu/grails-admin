@@ -21,6 +21,17 @@ class AdminController {
     GrailsApplication grailsApplication
     MessageSource messageSource
 
+    private String getAdminPath() { AdminPath.from(grailsApplication.config) }
+
+    private boolean configuredRoute() {
+        String uri = request.requestURI?.substring(request.contextPath?.length() ?: 0)
+        if (uri && uri != adminPath && !uri.startsWith("$adminPath/")) {
+            render status: 404
+            return false
+        }
+        true
+    }
+
     private boolean gate(AdminModel model, String operation = 'view') {
         if (!adminRegistryService.enabled) {
             adminStatus(404, 'Page not found', 'Grails Admin is not available.')
@@ -44,19 +55,20 @@ class AdminController {
 
     private AdminModel model() { adminRegistryService.resolve(params.group?.toString(), params.model?.toString()) }
     private static String pageView(AdminModel model, String page) { model.pageTemplates[page] ?: page }
-    private void adminStatus(int code, String title, String message, String actionUrl = '/admin', String actionLabel = 'Admin home') {
+    private void adminStatus(int code, String title, String message, String actionUrl = null, String actionLabel = 'Admin home') {
         render view: 'error', status: code,
-            model: [title: title, message: message, actionUrl: actionUrl, actionLabel: actionLabel]
+            model: [title: title, message: message, actionUrl: actionUrl ?: adminPath, actionLabel: actionLabel, adminPath: adminPath]
     }
 
     def error() {
+        if (!configuredRoute()) return
         String errorId = request.getAttribute(AdminErrorFilter.ERROR_ID_ATTRIBUTE)?.toString()
         if (!errorId) { adminStatus(404, 'Page not found', 'This admin page does not exist.'); return }
         render view: 'error', status: 500,
-            model: [title: 'Internal server error', message: 'An unexpected error occurred. Please try again later.', errorId: errorId]
+            model: [title: 'Internal server error', message: 'An unexpected error occurred. Please try again later.', errorId: errorId, adminPath: adminPath]
     }
     private Map common(AdminModel model) {
-        String logoutUrl = '/admin/logout'
+        String logoutUrl = "$adminPath/logout"
         String changePasswordUrl = grailsApplication.config.getProperty('grailsAdmin.changePasswordUrl', String, '')
         String viewSiteUrl = grailsApplication.config.getProperty('grailsAdmin.viewSiteUrl', String, '/')
         [logoutUrl, changePasswordUrl, viewSiteUrl].findAll().each {
@@ -64,10 +76,11 @@ class AdminController {
         }
         [adminModel: model, groups: adminRegistryService.all().findAll { adminSecurityService.allowed(it, 'view') }.groupBy { it.group },
          username: adminSecurityService.username(), adminSecurityService: adminSecurityService,
-         logoutUrl: logoutUrl, changePasswordUrl: changePasswordUrl, viewSiteUrl: viewSiteUrl]
+         logoutUrl: logoutUrl, changePasswordUrl: changePasswordUrl, viewSiteUrl: viewSiteUrl, adminPath: adminPath]
     }
 
     def index() {
+        if (!configuredRoute()) return
         if (!adminRegistryService.enabled) { adminStatus(404, 'Page not found', 'Grails Admin is not available.'); return }
         if (!adminSecurityService.authenticated()) { denyUnauthenticated(); return }
         if (!adminSecurityService.allowed(null, 'view')) { adminStatus(403, 'Access denied', 'You do not have permission to view Grails Admin.'); return }
@@ -77,22 +90,24 @@ class AdminController {
     private void denyUnauthenticated() {
         if (request.method == 'GET') {
             String uri = request.requestURI?.substring(request.contextPath?.length() ?: 0)
-            if (uri == '/admin' || uri?.startsWith('/admin/')) {
+            if (uri == adminPath || uri?.startsWith("$adminPath/")) {
                 request.getSession(true).setAttribute('grailsAdminReturnTo', uri)
             }
-            redirect uri: '/admin/login'
+            redirect uri: "$adminPath/login"
         }
-        else adminStatus(403, 'Session expired', 'Sign in again, then retry from a fresh form.', '/admin/login', 'Sign in')
+        else adminStatus(403, 'Session expired', 'Sign in again, then retry from a fresh form.', "$adminPath/login", 'Sign in')
     }
 
     def login() {
+        if (!configuredRoute()) return
         if (!adminRegistryService.enabled) { adminStatus(404, 'Page not found', 'Grails Admin is not available.'); return }
         if (!adminAccountService.configured()) { adminStatus(503, 'Setup required', 'Run the admin setup command on the server.'); return }
-        if (adminAuthenticationService.authenticated()) { redirect uri: '/admin'; return }
-        render view: 'login'
+        if (adminAuthenticationService.authenticated()) { redirect uri: adminPath; return }
+        render view: 'login', model: [adminPath: adminPath]
     }
 
     def authenticate() {
+        if (!configuredRoute()) return
         if (!adminRegistryService.enabled) { adminStatus(404, 'Page not found', 'Grails Admin is not available.'); return }
         if (!adminAccountService.configured()) { adminStatus(503, 'Setup required', 'Run the admin setup command on the server.'); return }
         withForm {
@@ -101,23 +116,25 @@ class AdminController {
                 adminLoginThrottleService.succeeded(request.remoteAddr)
                 String destination = request.getSession(false)?.getAttribute('grailsAdminReturnTo')?.toString()
                 request.getSession(false)?.removeAttribute('grailsAdminReturnTo')
-                redirect uri: (destination == '/admin' || destination?.startsWith('/admin/')) ? destination : '/admin'
+                redirect uri: (destination == adminPath || destination?.startsWith("$adminPath/")) ? destination : adminPath
             } else {
                 adminLoginThrottleService.failed(request.remoteAddr)
-                render view: 'login', model: [error: 'Invalid username or password'], status: 401
+                render view: 'login', model: [error: 'Invalid username or password', adminPath: adminPath], status: 401
             }
-        }.invalidToken { adminStatus(403, 'Form expired', 'Reload the sign-in page and try again.', '/admin/login', 'Sign in') }
+        }.invalidToken { adminStatus(403, 'Form expired', 'Reload the sign-in page and try again.', "$adminPath/login", 'Sign in') }
     }
 
     def logout() {
+        if (!configuredRoute()) return
         if (!adminRegistryService.enabled) { adminStatus(404, 'Page not found', 'Grails Admin is not available.'); return }
         withForm {
             adminAuthenticationService.logout()
-            redirect uri: '/admin/login'
+            redirect uri: "$adminPath/login"
         }.invalidToken { adminStatus(403, 'Form expired', 'Reload the admin page and try again.') }
     }
 
     def list() {
+        if (!configuredRoute()) return
         AdminModel m = model()
         if (!gate(m)) return
         try {
@@ -137,6 +154,7 @@ class AdminController {
     }
 
     def show() {
+        if (!configuredRoute()) return
         AdminModel m = model()
         if (!gate(m)) return
         def record
@@ -147,25 +165,28 @@ class AdminController {
     }
 
     def bulk() {
+        if (!configuredRoute()) return
         AdminModel m = model()
         if (!gate(m)) return
         withForm {
             try {
                 int count = adminCrudService.bulk(m, params.bulkAction?.toString(), params.list('selectedIds'))
                 flash.message = "$count ${m.label} records updated."
-                redirect uri: "/admin/${params.group}/${params.model}"
+                redirect uri: "$adminPath/${params.group}/${params.model}"
             } catch (SecurityException ignored) { adminStatus(403, 'Access denied', 'You do not have permission to update these records.') }
               catch (IllegalArgumentException ignored) { adminStatus(400, 'Invalid selection', 'Check the selected records and try again.') }
         }.invalidToken { adminStatus(403, 'Form expired', 'Reload the admin page and try again.') }
     }
 
     def create() {
+        if (!configuredRoute()) return
         AdminModel m = model()
         if (!gate(m, 'add')) return
         form(m, m.domainClass.newInstance(), true)
     }
 
     def edit() {
+        if (!configuredRoute()) return
         AdminModel m = model()
         if (!gate(m, 'change')) return
         def record
@@ -200,6 +221,7 @@ class AdminController {
     }
 
     def save() {
+        if (!configuredRoute()) return
         AdminModel m = model()
         if (!gate(m, 'add')) return
         withForm {
@@ -213,7 +235,7 @@ class AdminController {
                     return
                 }
                 flash.message = "${m.label} saved."
-                redirect uri: "/admin/${params.group}/${params.model}/${record.id}"
+                redirect uri: "$adminPath/${params.group}/${params.model}/${record.id}"
             } catch (AdminFieldConversionException error) {
                 reportAdminError('create', m, "Invalid ${error.fieldName}")
                 response.status = 422
@@ -231,6 +253,7 @@ class AdminController {
     }
 
     def update() {
+        if (!configuredRoute()) return
         AdminModel m = model()
         if (!gate(m, 'change')) return
         withForm {
@@ -250,7 +273,7 @@ class AdminController {
                     return
                 }
                 flash.message = "${m.label} saved."
-                redirect uri: "/admin/${params.group}/${params.model}/${record.id}"
+                redirect uri: "$adminPath/${params.group}/${params.model}/${record.id}"
             } catch (AdminFieldConversionException error) {
                 reportAdminError('update', m, "Invalid ${error.fieldName}")
                 if (!record) { adminStatus(404, 'Record not found', 'This record is unavailable.'); return }
@@ -269,6 +292,7 @@ class AdminController {
     }
 
     def confirmDelete() {
+        if (!configuredRoute()) return
         AdminModel m = model()
         if (!gate(m, 'delete')) return
         def record
@@ -279,6 +303,7 @@ class AdminController {
     }
 
     def remove() {
+        if (!configuredRoute()) return
         AdminModel m = model()
         if (!gate(m, 'delete')) return
         withForm {
@@ -286,7 +311,7 @@ class AdminController {
                 def record = adminCrudService.get(m, params.id?.toString(), 'delete')
                 if (!record) { adminStatus(404, 'Record not found', 'This record is unavailable.'); return }
                 adminCrudService.delete(m, record)
-                redirect uri: "/admin/${params.group}/${params.model}"
+                redirect uri: "$adminPath/${params.group}/${params.model}"
             } catch (SecurityException ignored) { adminStatus(403, 'Access denied', 'You do not have permission to delete this record.') }
         }.invalidToken { adminStatus(403, 'Form expired', 'Reload the admin page and try again.') }
     }

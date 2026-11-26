@@ -8,7 +8,7 @@
 <main class="admin-login">
     <h1>Grails Admin</h1>
     <g:if test="${error}"><p role="alert"><g:encodeAs codec="HTML">${error}</g:encodeAs></p></g:if>
-    <g:form method="post" uri="/admin/authenticate" useToken="true">
+    <g:form method="post" uri="${adminPath}/authenticate" useToken="true">
         <adminHost:csrfFields/>
         <label for="username">Username</label>
         <input id="username" name="username" autocomplete="username" required>

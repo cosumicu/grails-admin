@@ -1,10 +1,10 @@
 <%@ page defaultCodec="html" %>
 <html><head><meta name="layout" content="admin"/><title>${creating ? 'Add' : 'Edit'} ${adminModel.label}</title></head><body>
-<div class="page-head"><div><a class="crumb" href="${createLink(uri:'/admin/' + params.group + '/' + params.model)}">${adminModel.label}</a><h1>${creating ? 'Add' : 'Edit'} ${adminModel.label}</h1></div></div>
+<div class="page-head"><div><a class="crumb" href="${createLink(uri:adminPath + '/' + params.group + '/' + params.model)}">${adminModel.label}</a><h1>${creating ? 'Add' : 'Edit'} ${adminModel.label}</h1></div></div>
 <section class="panel form-panel"><g:if test="${saveError || fieldErrors || generalErrors}"><div class="form-error" role="alert">
 <p>${saveError ?: (creating ? 'The record was not saved. Please correct the following errors:' : 'The changes were not saved. Please correct the following errors:')}</p>
 <g:if test="${generalErrors}"><ul><g:each in="${generalErrors}" var="error"><li>${error}</li></g:each></ul></g:if>
-</div></g:if><g:form method="post" uri="${creating ? '/admin/' + params.group + '/' + params.model + '/save' : '/admin/' + params.group + '/' + params.model + '/' + record.id + '/update'}" useToken="true">
+</div></g:if><g:form method="post" uri="${creating ? adminPath + '/' + params.group + '/' + params.model + '/save' : adminPath + '/' + params.group + '/' + params.model + '/' + record.id + '/update'}" useToken="true">
 <adminHost:csrfFields/>
 <g:each in="${adminModel.formGroups}" var="formGroup"><fieldset class="form-group"><legend>${formGroup.key}</legend>
 <g:each in="${formGroup.value}" var="name"><g:set var="field" value="${metadata.byName[name]}"/><g:set var="editable" value="${!adminModel.readonlyFields.contains(name) && adminSecurityService.fieldWritable(adminModel, name, creating ? 'add' : 'change')}"/><g:set var="submitted" value="${submittedValues?.containsKey(name)}"/><g:set var="inputValue" value="${submitted ? submittedValues[name] : record[name]}"/>
@@ -18,5 +18,5 @@
 </g:if><g:else><div class="readonly"><g:encodeAs codec="HTML">${record[name]?.toString()}</g:encodeAs></div></g:else>
 <g:if test="${fieldErrors[name]}"><div class="error" id="error_${name}">${fieldErrors[name]}</div></g:if></div></g:if>
 </g:each></fieldset></g:each>
-<div class="form-actions"><button type="submit">Save</button><a href="${createLink(uri:'/admin/' + params.group + '/' + params.model)}">Cancel</a></div>
+<div class="form-actions"><button type="submit">Save</button><a href="${createLink(uri:adminPath + '/' + params.group + '/' + params.model)}">Cancel</a></div>
 </g:form></section></body></html>
